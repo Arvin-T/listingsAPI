@@ -15,10 +15,7 @@ const dotenv = require("dotenv");
 const ListingDB = require("./modules/listingsDB");
 const app = express();
 
-app.set('views', __dirname + '/views');
-app.use(express.static(__dirname + '/public'));
-require('pg'); // explicitly require the "pg" module
-const Sequelize = require('sequelize');
+
 dotenv.config();
 
 app.use(cors());
