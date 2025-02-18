@@ -14,11 +14,16 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const ListingDB = require("./modules/listingsDB");
 const app = express();
+const cors = require("cors");
 
+app.use(cors({
+  origin: "*", 
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type"]
+}));
 
 dotenv.config();
 
-app.use(cors());
 app.use(express.json());
 
 const db = new ListingDB();
