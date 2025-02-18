@@ -8,45 +8,57 @@
  *  Name: Seyedarvin Tabatabaei Ferezghi Student ID: 122267230 Date: February 3, 2025
  *  Published URL: https://listings-ca9urkdmr-arvins-projects-193706f1.vercel.app/
  ********************************************************************************/
-
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const ListingDB = require("./modules/listingsDB");
-const app = express();
-const cors = require("cors");
 
+dotenv.config(); 
+
+const app = express();
 app.use(cors({
-  origin: "*", 
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type"]
 }));
-
-dotenv.config();
-
 app.use(express.json());
 
 const db = new ListingDB();
 
+// Helper function for handling responses
+const handleRequest = async (req, res, operation) => {
+  try {
+    const result = await operation(req);
+    if (!result) {
+      return res.status(404).json({ error: "Not Found" });
+    }
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 db.initialize(process.env.MONGODB_CONN_STRING)
   .then(() => {
-    console.log("Database initialized successfully");
-    // GET: Root
+    console.log("✅ Database initialized successfully");
+
+    
     app.get("/", (req, res) => {
       res.json({ message: "API Listening" });
     });
 
-    // POST
+  
     app.post("/api/listings", async (req, res) => {
       try {
         const listing = await db.addListing(req.body);
+        console.log(`✅ New listing added: ${listing._id}`);
         res.status(201).json(listing);
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
     });
 
-    // GET: Fetch
+    
     app.get("/api/listings", async (req, res) => {
       try {
         const { page = 1, perPage = 10, name } = req.query;
@@ -57,43 +69,35 @@ db.initialize(process.env.MONGODB_CONN_STRING)
       }
     });
 
-    // function for handling errors
-    const handleRequest = async (res, operation) => {
-      try {
-        const result = await operation();
-        if (!result) {
-          return res.status(404).json({ error: "Not Found" });
-        }
-        res.json(result);
-      } catch (error) {
-        res.status(500).json({ error: error.message });
-      }
-    };
-
-    // GET: Fetch by ID
+   
     app.get("/api/listings/:id", async (req, res) => {
-      await handleRequest(res, () => db.getListingById(req.params.id));
+      await handleRequest(req, res, () => db.getListingById(req.params.id));
     });
 
-    // PUT: Update by ID
+     
     app.put("/api/listings/:id", async (req, res) => {
-      await handleRequest(res, () => db.updateListing(req.params.id, req.body));
+      await handleRequest(req, res, async (req) => {
+        const updatedListing = await db.updateListing(req.params.id, req.body);
+        console.log(`✅ Listing ${req.params.id} updated`);
+        return updatedListing;
+      });
     });
 
-    // DELET: Delete by ID
+    
     app.delete("/api/listings/:id", async (req, res) => {
       try {
         const result = await db.deleteListing(req.params.id);
         if (!result) return res.status(404).json({ error: "Not Found" });
-        res.status(204).send();
+
+        console.log(`❌ Listing ${req.params.id} deleted`);
+        res.status(204).json({ message: "Listing deleted successfully" });
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
     });
 
-    const HTTP_PORT = process.env.PORT || 8080; // assign a port
-    app.listen(HTTP_PORT, () =>
-      console.log(`server listening on: ${HTTP_PORT}`)
-    );
+    // Start server
+    const HTTP_PORT = process.env.PORT || 8080;
+    app.listen(HTTP_PORT, () => console.log(`🚀 Server listening on port: ${HTTP_PORT}`));
   })
-  .catch((err) => console.log("Initialization faied:", err));
+  .catch((err) => console.error("❌ Initialization failed:", err));
