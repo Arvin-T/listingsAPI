@@ -6,7 +6,7 @@
  *  https://www.senecapolytechnic.ca/about/policies/academic-integrity-policy.html
  *
  *  Name: Seyedarvin Tabatabaei Ferezghi Student ID: 122267230 Date: February 3, 2025
- *  Published URL: https://listings-ca9urkdmr-arvins-projects-193706f1.vercel.app/
+ *  Published URL: https://listings-api-topaz.vercel.app/api/listings
  ********************************************************************************/
 const express = require("express");
 const cors = require("cors");
